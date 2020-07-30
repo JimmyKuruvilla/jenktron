@@ -1,0 +1,47 @@
+@import '../../../../../styles/colors.scss';
+@import '../../../../../styles/traits.scss';
+%status-colorized {
+  &.FAILED,
+  &.FAILING {
+    color: $failing;
+    font-size: 2em;
+    font-family: 'Silkscreen';
+  }
+  &.SUCCESS {
+    color: $success;
+  }
+  &.RUNNING,
+  &.NOT_EXECUTED {
+    color: $other;
+    font-family: 'Silkscreen';
+  }
+  &.RUNNING {
+    font-size: 2em;
+  }
+  &.STOPPED {
+    color: $text;
+  }
+}
+
+#statuses {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  .status-container {
+    &:hover {
+      @extend %bganimate;
+    }
+    padding: 0 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 1;
+    div {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      @extend %status-colorized;
+    }
+  }
+}

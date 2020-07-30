@@ -1,0 +1,19 @@
+#build-summary {
+  .summary-block {
+    margin-bottom: 20px;
+    .build-num {
+      font-weight: bold;
+    }
+    .summary-detail {
+      margin-left: 20px;
+      display: flex;
+      span {
+        flex: 0 1 15%;
+        min-width: 175px;
+        &:nth-of-type(2) {
+          flex: 8;
+        }
+      }
+    }
+  }
+}

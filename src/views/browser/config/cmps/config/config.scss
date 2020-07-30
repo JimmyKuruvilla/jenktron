@@ -1,0 +1,25 @@
+#config {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  left: -120px;
+  form {
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    label {
+      width: 250px;
+      margin: 0 0 10px 0;
+      font-size: 1.3em;
+      input {
+        width: 250px;
+      }
+    }
+    button {
+      width: 250px;
+    }
+  }
+}

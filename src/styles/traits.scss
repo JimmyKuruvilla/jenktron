@@ -1,0 +1,13 @@
+@import './colors.scss';
+%bganimate {
+  background: linear-gradient(332deg, $grad1, $grad2);
+  background-size: 400% 400%;
+  animation: Gradient 10s ease infinite;
+}
+
+%clickable {
+  &:hover {
+    cursor: pointer;
+    @extend %bganimate;
+  }
+}

@@ -1,0 +1,19 @@
+%preformat {
+  font-family: 'Inter', monospace, sans-serif;
+  margin: 0;
+  padding: 0;
+  white-space: pre-line;
+  &.color {
+    color: darkcyan;
+  }
+}
+
+.log-pre {
+  font-family: 'Inter', monospace, sans-serif;
+  font-size: 13px;
+  margin: 0;
+  padding: 0;
+  pre {
+    @extend %preformat;
+  }
+}

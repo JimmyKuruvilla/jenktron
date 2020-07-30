@@ -1,0 +1,34 @@
+* {
+  box-sizing: border-box;
+  font-size: 13px;
+  font-family: 'Inter', monospace, sans-serif;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+}
+
+pre {
+  font-family: 'Inter', monospace, sans-serif;
+  font-size: 13px;
+  white-space: pre-line;
+}
+
+button {
+  padding: 8px;
+  border: none;
+  border-radius: 20px;
+}
+
+input {
+  width: 100%;
+  height: 40px;
+  border-radius: 3px;
+  padding: 8px;
+  border: none;
+}

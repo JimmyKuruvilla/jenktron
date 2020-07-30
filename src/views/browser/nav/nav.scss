@@ -1,0 +1,44 @@
+@import '../../../styles/colors.scss';
+@import '../../../styles/variables.scss';
+
+html body nav {
+  * {
+    width: 100%;
+  }
+  display: flex;
+  flex-flow: column nowrap;
+  width: 300px;
+
+  header {
+    height: $top-page-margin;
+    .app-title {
+      font-family: 'Silkscreen';
+      font-size: 40px;
+      text-align: center;
+      background-image: linear-gradient(45deg, $grad1, $grad2);
+      background-size: 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      &.loading {
+        background-image: linear-gradient(45deg, orange, $grad2);
+
+        font-size: 130px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+  }
+
+  #nav-outlet * {
+    text-transform: uppercase;
+    height: 40px;
+    background-color: white;
+    color: $darkbg;
+    border-radius: 5px;
+    border: none;
+    margin: 10px 0;
+    text-align-last: center;
+  }
+}

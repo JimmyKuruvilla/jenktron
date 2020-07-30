@@ -1,0 +1,7 @@
+.DS_Store
+npm-debug.log
+renderer
+dist-cli
+dist
+node_modules
+sampleRequestData

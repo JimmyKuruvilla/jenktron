@@ -1,0 +1,101 @@
+@import '../../../../../styles/colors.scss';
+@import '../../../../../styles/traits.scss';
+
+%stage-colorized {
+  color: $text;
+  &.FAILED,
+  &.FAILING {
+    color: $failing;
+  }
+  &.RUNNING,
+  &.NOT_EXECUTED {
+    color: $other;
+  }
+  &.STOPPED {
+    color: $text;
+  }
+}
+
+%stage-colorized-border {
+  color: $text;
+  &.FAILED,
+  &.FAILING {
+    border-left: 20px solid $failing;
+    padding-left: 5px;
+    border-radius: 5px;
+  }
+  &.RUNNING,
+  &.NOT_EXECUTED {
+    border-left: 20px solid $other;
+    padding-left: 5px;
+    border-radius: 5px;
+  }
+  &.STOPPED {
+    border-left: 20px solid $text;
+    padding-left: 5px;
+    border-radius: 5px;
+  }
+}
+
+#stages {
+  .stage-block {
+    margin-bottom: 50px;
+    .stage-heading {
+      display: grid;
+      grid-template-columns: repeat(3, 70px) 1fr;
+      border-bottom: 2px solid cornflowerblue;
+      .build-num {
+        @extend %clickable;
+        @extend %stage-colorized;
+        &.SUCCESS {
+          color: $success;
+        }
+      }
+    }
+
+    .summary-block {
+      margin: 5px 0 10px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 40px 40px 40px;
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      .summary-detail {
+        margin-left: 10px;
+        display: flex;
+        overflow: auto;
+        div {
+          min-width: 130px;
+        }
+        &.author,
+        &.comment {
+          grid-column: 1/1;
+        }
+
+        &.commit,
+        &.file {
+          grid-column: 2/2;
+        }
+        &.branch {
+          grid-column: span 2;
+        }
+      }
+    }
+    .stages {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 140px));
+      .stage-detail {
+        @extend %stage-colorized-border;
+        @extend %stage-colorized;
+        display: flex;
+        flex-flow: column nowrap;
+        padding: 0 5px;
+        &:nth-of-type(1) {
+          padding: 0 5px 0 0;
+          margin: 0 10px;
+        }
+      }
+    }
+  }
+}

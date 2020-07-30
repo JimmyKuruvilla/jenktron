@@ -1,0 +1,32 @@
+@import './traits.scss';
+@import './colors.scss';
+
+html {
+  .invisible {
+    visibility: hidden;
+  }
+
+  .bg-animate {
+    @extend %bganimate;
+    color: white;
+    &.fast {
+      animation: Gradient 1500ms ease infinite;
+    }
+  }
+
+  .boundary + .boundary {
+    margin: 10px 0;
+  }
+
+  @keyframes Gradient {
+    0% {
+      background-position: 83% 0%;
+    }
+    50% {
+      background-position: 18% 100%;
+    }
+    100% {
+      background-position: 83% 0%;
+    }
+  }
+}

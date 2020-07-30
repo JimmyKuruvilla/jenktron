@@ -1,0 +1,52 @@
+{
+  "name": "jenktron",
+  "version": "1.0.0",
+  "description": "Jenkins cli and electron app for looking at pipeline status",
+  "main": "main/index.js",
+  "repository": "https://github.com/JimmyKuruvilla/jenktron",
+  "build": {
+    "appId": "com.remvoeme.app",
+    "files": [
+      "main/**/*",
+      "assets/**/*",
+      "renderer/**/*"
+    ]
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "tsc:watch": "tsc && tsc -w",
+    "scss": "node-sass src/styles/main.scss --output renderer/styles",
+    "scss:watch": "npm run scss && node-sass -w src/styles/main.scss --output renderer/styles",
+    "build": "rm -rf ./renderer && tsc && npm run scss",
+    "start:cli": "CLI=1 node renderer/index.js",
+    "start:app": "electron .",
+    "packtest:app": "electron-builder --dir",
+    "pack:app": "electron-builder",
+    "pack:docker": "electron-builder -mwl",
+    "pack:cli": "pkg ./renderer/index.js --out-path ./dist-cli"
+  },
+  "author": "Jimmy Kuruvilla",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^12.12.53",
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "pkg": "^4.4.9",
+    "electron": "^9.1.2",
+    "electron-builder": "^22.8.0",
+    "eslint": "^7.5.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "node-sass": "^4.14.1",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "electron-settings": "^4.0.0",
+    "node-fetch": "^2.6.0"
+  }
+}
