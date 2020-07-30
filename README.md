@@ -1,4 +1,4 @@
-# jenkcli
+# jenkcli/jenktron
 
 cli for jenkins pipeline status, works with Node 12+. Relies on having a Pipelines "view" in jenkins ui that lists all of your pipelines.
 
