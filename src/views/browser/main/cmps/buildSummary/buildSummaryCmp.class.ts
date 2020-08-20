@@ -1,7 +1,7 @@
 import { UIPipelineHealthMap } from '../../../../../services/pipeline/pipelineHealth.ui.interface';
+import { dasher } from '../../../../../shared';
 import { BaseCmp } from '../../../baseCmp.class';
 import { HTML } from '../../../html.class';
-import { dasher } from '../../../shared';
 
 export class BuildSummaryCmp extends BaseCmp {
   constructor(data: UIPipelineHealthMap) {
@@ -44,9 +44,6 @@ export class BuildSummaryCmp extends BaseCmp {
         </div>
         <div class="summary-detail">
           <span>Merged Branch</span><span>${dasher(v.mergedBranch)}</span>
-        </div>
-        <div class="summary-detail">
-          <span>Commit Message</span><span>${dasher(v.commitMessage)}</span>
         </div>
       </div>
       `;

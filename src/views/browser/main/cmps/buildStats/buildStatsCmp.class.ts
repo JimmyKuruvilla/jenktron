@@ -23,21 +23,4 @@ export class BuildStatsCmp extends BaseCmp {
     </div>
     `);
   }
-  /* unecessary clutter
-<div class="stats-detail">
-  <span>LAST BUILD</span><span>${data.lastBuild}</span>
-</div>
-<div class="stats-detail">
-  <span>Last Unstable Build</span><span>${data.lastUnstableBuild}</span>
-</div>
-<div class="stats-detail">
-  <span>Last Unsuccessful Build</span><span>${data.lastUnsuccessfulBuild}</span>
-</div>
-<div class="stats-detail">
-  <span>Last Stable Build</span><span>${data.lastStableBuild}</span>
-</div>
-<div class="stats-detail">
-  <span>Last Completed Build</span><span>${data.lastCompletedBuild}</span>
-</div>
-*/
 }

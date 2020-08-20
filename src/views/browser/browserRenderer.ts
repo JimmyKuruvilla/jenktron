@@ -63,6 +63,13 @@ export class BrowserRenderer {
     cmps.forEach((c) => c.effects.forEach((e) => e()));
   }
 
+  public incrementalComposer(cmp: BaseCmp, outlet = $(MainOutlet)): void {
+    const div = document.createElement('div');
+    div.innerHTML = (cmp.html as unknown) as string;
+    outlet.appendChild(div);
+    cmp.effects.forEach((e) => e());
+  }
+
   public destroy(nodes: Node[], actions: Action[]): void {
     nodes.forEach((n, idx) => {
       const [type, fn] = actions[idx];

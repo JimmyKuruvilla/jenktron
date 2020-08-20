@@ -1,80 +1,81 @@
-import { match, toMin } from '../../shared';
+import { BuildDetailsResponse } from '../../jenkinsHttp/buildDetails.response.interface';
+import { BuildsResponse } from '../../jenkinsHttp/builds.response.interface';
 import { JenkinsHttp } from '../../jenkinsHttp/jenkinsHttp.class';
 import { StageDetails } from '../../jenkinsHttp/stageDetails.response.interface';
-import { UIStageDetailsMap } from './stageDetails.ui.interface';
-import { BuildDetailsResponse } from '../../jenkinsHttp/buildDetails.response.interface';
+import { match, toMin } from '../../shared';
+import { presetQuantity } from '../../views/browser/menus/pipeline.menu';
+import { NA } from '../../views/browser/shared';
+import { WebCache } from '../../views/browser/webCache.class';
+import { getLatestBuildNumber } from '../../views/cli/buildNumber.view';
 import { UILastBuildStats } from './lastBuildStats.ui.interface';
 import { UIPipelineHealthMap } from './pipelineHealth.ui.interface';
-import { getLatestBuildNumber } from '../../views/cli/buildNumber.view';
-import { presetQuantity } from '../../views/browser/menus/pipeline.menu';
 import { UIPipelineStatus } from './pipelineStatus.ui.interface';
+import { UIStageDetailsMap } from './stageDetails.ui.interface';
 
 export class PipelineService {
   private api: JenkinsHttp;
+  public cache = new WebCache();
   constructor(api: JenkinsHttp) {
     this.api = api;
   }
 
-  public async pipelineHealth(
-    pipeline: string,
-    buildNum: number,
-    maxBuilds = 0
-  ): Promise<UIPipelineHealthMap> {
-    return new Promise(async (resolve) => {
-      const buildInfo = await this.api.builds(pipeline);
-      const buildNums: number[] = buildNum
-        ? [buildNum]
-        : buildInfo.builds.slice(0, maxBuilds).map((_) => _.number);
+  public async pipelineNames(): Promise<string[]> {
+    const res = await this.cache.retrieve('pipelineNames', () =>
+      this.api.pipelines()
+    );
+    return res.jobs.map((_) => _.name);
+  }
 
-      const buildStatusPromises = await buildNums.map(async (buildNum) => {
-        const log = await this.api.consoleOut(pipeline, buildNum);
-        const commitMessage = match(/Commit message\: (.*)/, log);
-        const mergedBranch = match(/Merged branch: (.*)/, log);
-        const failingFeatures = (
-          log.match(/Failing scenarios.*[\s\S]*features\/.*/gm) || []
-        ).join('');
+  public async builds(pipelineName: string): Promise<BuildsResponse> {
+    return this.cache.retrieve(`builds-${pipelineName}`, () =>
+      this.api.builds(pipelineName)
+    );
+  }
 
-        const details = await this.api.buildDetails(pipeline, buildNum);
-        const buildType = details.actions
-          .find((i) => i._class === 'hudson.model.ParametersAction')
-          ?.parameters.find((i) => i.name == 'buildType')?.value;
-        const status = details.result;
-        const displayName = details.fullDisplayName;
-        const timestamp = new Date(details.timestamp);
-        const duration = `${toMin(details.duration)} min`;
-        const git_author = details.changeSets[0]?.items[0]?.author.fullName;
-        const git_oneAffectedFile =
-          details.changeSets[0]?.items[0]?.affectedPaths[0];
-        const git_comment = details.changeSets[0]?.items
-          .map((_) => _.comment)
-          .join('');
-        return [
-          buildNum,
-          {
-            buildType: buildType,
-            displayName: displayName,
-            timestamp: timestamp,
-            duration: duration,
-            git_author: git_author,
-            git_comment: git_comment,
-            git_oneAffectedFile: git_oneAffectedFile,
-            status: status,
-            mergedBranch: mergedBranch,
-            commitMessage: commitMessage,
-            failingFeatures: failingFeatures,
-          },
-        ];
-      });
+  public async buildDetails(
+    pipelineName: string,
+    buildNum: number
+  ): Promise<BuildDetailsResponse> {
+    return this.cache.retrieve(`buildDetails-${pipelineName}-${buildNum}`, () =>
+      this.api.buildDetails(pipelineName, buildNum)
+    );
+  }
 
-      const statusTupleList = await Promise.all(buildStatusPromises);
-      const healthMap = new Map();
-      statusTupleList.forEach((i) => healthMap.set(i[0], i[1]));
-      resolve(healthMap);
-    });
+  public async buildConsoleOut(
+    pipelineName: string,
+    buildNum: number
+  ): Promise<string> {
+    return this.cache.retrieve(`consoleOut-${pipelineName}-${buildNum}`, () =>
+      this.api.consoleOut(pipelineName, buildNum)
+    );
+  }
+
+  public async listStatus(pipelineName: string): Promise<UIPipelineStatus> {
+    const buildsInfo = await this.cache.retrieve(`builds-${pipelineName}`, () =>
+      this.api.builds(pipelineName)
+    );
+    const isFailing = this.didLastBuildFail(buildsInfo);
+    const [isRunning, duration, buildType] = await this.getRunInfo(
+      pipelineName,
+      buildsInfo
+    );
+    return {
+      pipeline: pipelineName,
+      buildType,
+      lastRunDuration: duration,
+      running: isRunning ? 'RUNNING' : 'STOPPED',
+      status: isFailing ? 'FAILING' : 'SUCCESS',
+    };
+  }
+
+  public async listStatuses(): Promise<UIPipelineStatus[]> {
+    const names = await this.pipelineNames();
+    const pipelinePromises = names.map((name) => this.listStatus(name));
+    return Promise.all(pipelinePromises);
   }
 
   public async lastBuildStats(pipeline: string): Promise<UILastBuildStats> {
-    const buildInfo = await this.api.builds(pipeline);
+    const buildInfo = await this.builds(pipeline);
     const healthReport = `${buildInfo.healthReport[0]?.description} -- score: ${buildInfo.healthReport[0]?.score}`;
     return {
       lastBuildFailed: this.didLastBuildFail(buildInfo),
@@ -91,37 +92,130 @@ export class PipelineService {
     };
   }
 
-  public async getBuildConsoleOut(
+  public async pipelineHealth(
     pipeline: string,
-    buildNum: number
-  ): Promise<string> {
-    return this.api.consoleOut(pipeline, buildNum);
+    buildNum: number,
+    maxBuilds = 1
+  ): Promise<UIPipelineHealthMap> {
+    return new Promise(async (resolve) => {
+      const buildInfo = await this.builds(pipeline);
+      const buildNums: number[] = buildNum
+        ? [buildNum]
+        : buildInfo.builds.slice(0, maxBuilds).map((_) => _.number);
+
+      const buildStatusPromises = await buildNums.map(async (buildNum) => {
+        let mergedBranch, failingFeatures;
+        const log = await this.buildConsoleOut(pipeline, buildNum);
+        if (log) {
+          mergedBranch = match(/Merged branch: (.*)/, log);
+          failingFeatures = (
+            log.match(/Failing scenarios.*[\s\S]*features\/.*/gm) || []
+          ).join('');
+        } else {
+          mergedBranch = NA;
+          failingFeatures = NA;
+        }
+
+        const details = await this.buildDetails(pipeline, buildNum);
+        const buildType =
+          details?.actions
+            .find((i) => i._class === 'hudson.model.ParametersAction')
+            ?.parameters.find((i) => i.name == 'buildType')?.value || NA;
+        const status = details?.result || NA;
+        const displayName = details?.fullDisplayName || NA;
+        const timestamp = new Date(details?.timestamp) || NA;
+        const duration = `${toMin(details?.duration)} min` || NA;
+        const git_author =
+          details?.changeSets[0]?.items[0]?.author.fullName || NA;
+        const git_oneAffectedFile =
+          details?.changeSets[0]?.items[0]?.affectedPaths[0] || NA;
+        const git_comment =
+          details?.changeSets[0]?.items.map((_) => _.comment).join('') || NA;
+        return [
+          buildNum,
+          {
+            buildType: buildType,
+            displayName: displayName,
+            timestamp: timestamp,
+            duration: duration,
+            git_author: git_author,
+            git_comment: git_comment,
+            git_oneAffectedFile: git_oneAffectedFile,
+            status: status,
+            mergedBranch: mergedBranch,
+            failingFeatures: failingFeatures,
+          },
+        ];
+      });
+
+      const statusTupleList = await Promise.all(buildStatusPromises);
+      const healthMap = new Map();
+      statusTupleList.forEach((i) => healthMap.set(i[0], i[1]));
+      resolve(healthMap);
+    });
   }
 
   public async getAvailableBuilds(pipeline: string): Promise<number[]> {
-    const buildsInfo = await this.api.builds(pipeline);
+    const buildsInfo = await this.builds(pipeline);
     return buildsInfo.builds.map((_) => _.number);
   }
 
-  public async lastBuildFailed(pipeline: string): Promise<boolean> {
-    const buildInfo = await this.api.builds(pipeline);
-    return this.didLastBuildFail(buildInfo);
-  }
-
-  public async getStatus(pipeline: string, buildNum: number): Promise<string> {
-    const details = await this.api.buildDetails(pipeline, buildNum);
-    return details.result;
-  }
-
-  public async stageDetails(
-    pipeline: string,
-    buildNum: number
-  ): Promise<UIStageDetailsMap> {
-    const stageDetails = await this.api.stageDetails(pipeline);
-    const details = stageDetails.filter(
-      (_: StageDetails) => _.id === String(buildNum)
+  public async lastFewStageDetails(
+    pipeline: string
+  ): Promise<UIStageDetailsMap[]> {
+    const buildNumbers = await this.getAvailableBuilds(pipeline);
+    const lastFew = buildNumbers.slice(0, presetQuantity);
+    const stageDetails = await this.cache.retrieve(
+      `lastFewStageDetails-${pipeline}`,
+      () => this.api.stageDetails(pipeline)
     );
 
+    return lastFew.map((buildNum) => {
+      const details = stageDetails.filter(
+        (_: StageDetails) => _.id === String(buildNum)
+      );
+      return this.constructStageDetails(pipeline, details);
+    });
+  }
+
+  private async getRunInfo(
+    pipeline: string,
+    buildsInfo: BuildsResponse
+  ): Promise<[boolean, number, string]> {
+    const buildNumbers = buildsInfo.builds.map((_) => _.number);
+    const latestBuildNum = getLatestBuildNumber(buildNumbers);
+    const details = latestBuildNum
+      ? await this.buildDetails(pipeline, latestBuildNum)
+      : undefined;
+
+    const buildType = details.actions
+      .find((i) => i._class === 'hudson.model.ParametersAction')
+      .parameters.find((i) => i.name === 'buildType')?.value;
+    return [this.getIsRunning(details), details.duration, buildType];
+  }
+
+  private getIsRunning(details) {
+    let isRunning;
+    if (details) {
+      isRunning = details.result === null;
+    } else {
+      isRunning = null;
+    }
+    return isRunning;
+  }
+
+  private didLastBuildFail(buildInfo: BuildsResponse): boolean {
+    if (buildInfo.lastBuild && buildInfo.lastFailedBuild) {
+      return buildInfo.lastFailedBuild.number === buildInfo.lastBuild.number;
+    } else {
+      return null;
+    }
+  }
+
+  private constructStageDetails(
+    pipeline: string,
+    details: StageDetails[]
+  ): UIStageDetailsMap {
     const detailsMap = new Map();
     details.forEach((d) => {
       detailsMap.set('name', pipeline);
@@ -137,68 +231,5 @@ export class PipelineService {
       );
     });
     return detailsMap;
-  }
-
-  public async pipelineNames(): Promise<string[]> {
-    const res = await this.api.pipelines();
-    return res.jobs.map((_) => _.name);
-  }
-
-  public async buildDetails(
-    pipelineName: string,
-    buildNum: number
-  ): Promise<BuildDetailsResponse> {
-    return this.api.buildDetails(pipelineName, buildNum);
-  }
-
-  public async listStatuses(): Promise<UIPipelineStatus[]> {
-    const names = await this.pipelineNames();
-    const pipelinePromises = names.map(async (pipeline: string) => {
-      const isFailing = await this.lastBuildFailed(pipeline);
-      const isRunning = await this.getRunningState(pipeline);
-      return {
-        pipeline: pipeline,
-        running: isRunning ? 'RUNNING' : 'STOPPED',
-        status: isFailing ? 'FAILING' : 'SUCCESS',
-      };
-    });
-    return Promise.all(pipelinePromises);
-  }
-
-  public async lastFewStageDetails(
-    pipeline: string
-  ): Promise<UIStageDetailsMap[]> {
-    const buildNumbers = await this.getAvailableBuilds(pipeline);
-    const lastFew = buildNumbers.slice(0, presetQuantity);
-    return Promise.all(
-      lastFew.map(async (i) => await this.stageDetails(pipeline, i))
-    );
-  }
-
-  private async getRunningState(pipeline: string) {
-    const buildNumbers = await this.getAvailableBuilds(pipeline);
-    const latestBuildNum = getLatestBuildNumber(buildNumbers);
-    const details = latestBuildNum
-      ? await this.buildDetails(pipeline, latestBuildNum)
-      : undefined;
-    return this.getIsRunning(details);
-  }
-
-  private getIsRunning(details) {
-    let isRunning;
-    if (details) {
-      isRunning = details.result === null;
-    } else {
-      isRunning = null;
-    }
-    return isRunning;
-  }
-
-  private didLastBuildFail(buildInfo): boolean {
-    if (buildInfo.lastBuild && buildInfo.lastFailedBuild) {
-      return buildInfo.lastFailedBuild.number === buildInfo.lastBuild.number;
-    } else {
-      return null;
-    }
   }
 }

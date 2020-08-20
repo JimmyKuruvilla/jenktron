@@ -33,7 +33,9 @@ function initialize() {
 
     mainWindow = new BrowserWindow(windowOptions)
     mainWindow.loadURL(path.join('file://', __dirname, '../assets', '/index.html'))
-    if (debug) { mainWindow.webContents.openDevTools(); }
+    if (debug) {
+      mainWindow.webContents.openDevTools();
+    }
     mainWindow.setTouchBar(touchBar)
 
 

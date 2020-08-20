@@ -1,4 +1,5 @@
 import { UIPipelineStatus } from '../../../../../services/pipeline/pipelineStatus.ui.interface';
+import { dasher, toMin } from '../../../../../shared';
 import { BaseCmp } from '../../../baseCmp.class';
 import { HTML } from '../../../html.class';
 import { $$, click, FAILING } from '../../../shared';
@@ -38,11 +39,28 @@ export class OverallStatusesCmp extends BaseCmp {
   }
 
   public getOverallStatus(s: UIPipelineStatus): HTML {
+    const sus = (s: UIPipelineStatus) => {
+      const duration = parseFloat(toMin(s.lastRunDuration));
+      switch (s.buildType) {
+        case 'code':
+        case 'db':
+          return duration < 10;
+        case 'auto':
+        case 'k8s':
+        default:
+          return duration < 2;
+      }
+    };
+
     return new HTML(
       `<div class="status-container" data-pipeline="${s.pipeline}">
-        <div class="status ${s.status === FAILING ? FAILING : ''}">${
+      <div class="status ${s.status === FAILING ? FAILING : ''}">${
         s.status
       }</div>
+      <div class="buildType">${dasher(s.buildType)}</div>
+      <div class="duration ${sus(s) ? 'suspicious' : ''}">${toMin(
+        s.lastRunDuration
+      )} min</div>
         <div class="pipeline">${s.pipeline}</div>
         <div class="running ${s.running}">${s.running}</div>
       </div>`

@@ -1,4 +1,4 @@
-import { VoidFn } from './browser/shared';
+import { VoidFn } from '../shared';
 
 export class Route {
   public name: string;

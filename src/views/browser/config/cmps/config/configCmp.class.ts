@@ -1,11 +1,11 @@
 import settings from 'electron-settings';
 import { browserInit } from '../../../../../jenktron';
-import { Route } from '../../../../route.class';
+import { VoidFn } from '../../../../../shared';
 import { Action } from '../../../action.interface';
 import { BaseCmp } from '../../../baseCmp.class';
 import { HTML } from '../../../html.class';
 import { NavView } from '../../../nav/nav.view';
-import { $, click, jenkinsUrl, password, user, VoidFn } from '../../../shared';
+import { $, click, jenkinsUrl, password, user } from '../../../shared';
 
 export class ConfigCmp extends BaseCmp {
   public nav: NavView;
@@ -27,7 +27,7 @@ export class ConfigCmp extends BaseCmp {
       },
     ];
 
-    this.router.register(new Route('settings', () => new ConfigCmp()));
+    this.router.register('settings', async () => new ConfigCmp());
     this.html = this.createConfig();
     this.renderer.composer([this]);
     initEffects.forEach((e) => e());

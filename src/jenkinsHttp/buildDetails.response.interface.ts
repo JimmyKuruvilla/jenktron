@@ -1,10 +1,15 @@
 export interface BuildDetailsResponse {
   changeSets: BuildDetailsChangeSet[];
-  actions: { _class: string; parameters: { name: string; value: string }[] }[];
+  actions: BuildDetailsAction[];
   timestamp: number;
   duration: number;
   result: string;
   fullDisplayName: string;
+}
+
+interface BuildDetailsAction {
+  _class: string;
+  parameters: Array<{ name: string; value: string }>;
 }
 
 interface BuildDetailsItem {

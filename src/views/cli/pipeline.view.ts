@@ -1,11 +1,11 @@
-import { range } from '../../shared';
-import { CliRenderer } from './cliRenderer';
-import { CliState } from '../../state/CliState.class';
 import { PipelineService } from '../../services/pipeline/pipeline.service';
-import { PipelineMenu, presetQuantity } from './menus/pipeline.menu';
+import { range } from '../../shared';
+import { CliState } from '../../state/CliState.class';
 import { createBuildNumberView } from './buildNumber.view';
-import { createAndSetPipelinesView } from './pipelines.view';
+import { CliRenderer } from './cliRenderer';
 import { CliView } from './cliView.interface';
+import { PipelineMenu, presetQuantity } from './menus/pipeline.menu';
+import { createAndSetPipelinesView } from './pipelines.view';
 
 export function createPipelineView(pipeline: string): CliView {
   const r = new CliRenderer();
@@ -34,20 +34,14 @@ export function createPipelineView(pipeline: string): CliView {
     async (state: CliState) => {
       const buildNumbers = await listAvailableBuilds(state.pipelines, pipeline);
       state.current = createBuildNumberView(buildNumbers, async (state) => {
-        const log = await state.pipelines.getBuildConsoleOut(
-          pipeline,
-          state.ans
-        );
+        const log = await state.pipelines.buildConsoleOut(pipeline, state.ans);
         r.logAccFailures(log);
       });
     },
     async (state: CliState) => {
       const buildNumbers = await listAvailableBuilds(state.pipelines, pipeline);
       state.current = createBuildNumberView(buildNumbers, async (state) => {
-        const log = await state.pipelines.getBuildConsoleOut(
-          pipeline,
-          state.ans
-        );
+        const log = await state.pipelines.buildConsoleOut(pipeline, state.ans);
         r.log(log);
       });
     },

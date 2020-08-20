@@ -1,5 +1,5 @@
 import * as fetch from 'node-fetch';
-import { loggify } from '../shared';
+import { debugLog, loggify } from '../shared';
 import { Options } from './options.interface';
 
 function basicAuthHeader(user: string, password: string): Map<string, string> {
@@ -34,25 +34,47 @@ async function _fatch(
   let fetchFn;
   let timeout;
 
-  try {
-    if (method === 'get') {
-      fetchFn = async () => fetch(url, { headers, signal: controller.signal });
+  const maxRetries = 3;
+  let attempt = 0;
+  let error;
+  let result;
+  let success = false;
+
+  while (attempt < maxRetries) {
+    attempt += 1;
+    try {
+      if (method === 'get') {
+        fetchFn = async () =>
+          fetch(url, { headers, signal: controller.signal });
+      }
+
+      timeout = setTimeout(() => {
+        controller.abort();
+      }, 2500);
+
+      debugLog(`attempt ${attempt}, ${method} : ${url}`);
+
+      const response = await fetchFn();
+
+      if (!response.ok) {
+        success = false;
+        error = loggify(response);
+      }
+
+      success = true;
+      result = responseType === 'json' ? response.json() : response.text();
+    } catch (error) {
+      success = false;
+      error = loggify(error);
+    } finally {
+      clearTimeout(timeout);
     }
 
-    timeout = setTimeout(() => {
-      controller.abort();
-    }, 2000);
-
-    const response = await fetchFn();
-
-    if (!response.ok) {
-      throw new Error(loggify(response));
+    if (success) {
+      return result;
     }
-
-    return responseType === 'json' ? response.json() : response.text();
-  } catch (error) {
-    throw new Error(loggify(error));
-  } finally {
-    clearTimeout(timeout);
+  }
+  if (error) {
+    throw new Error(error);
   }
 }

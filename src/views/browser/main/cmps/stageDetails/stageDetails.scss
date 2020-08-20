@@ -18,22 +18,21 @@
 
 %stage-colorized-border {
   color: $text;
+  border: 1px solid white;
+
   &.FAILED,
   &.FAILING {
     border-left: 20px solid $failing;
     padding-left: 5px;
-    border-radius: 5px;
   }
   &.RUNNING,
   &.NOT_EXECUTED {
     border-left: 20px solid $other;
     padding-left: 5px;
-    border-radius: 5px;
   }
   &.STOPPED {
     border-left: 20px solid $text;
     padding-left: 5px;
-    border-radius: 5px;
   }
 }
 
@@ -68,16 +67,15 @@
         div {
           min-width: 130px;
         }
-        &.author,
-        &.comment {
+        &.author {
           grid-column: 1/1;
         }
 
-        &.commit,
-        &.file {
+        &.comment {
           grid-column: 2/2;
         }
-        &.branch {
+        &.branch,
+        &.file {
           grid-column: span 2;
         }
       }
@@ -85,16 +83,13 @@
     .stages {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 140px));
+      grid-auto-rows: minmax(min-content, max-content);
       .stage-detail {
         @extend %stage-colorized-border;
         @extend %stage-colorized;
         display: flex;
         flex-flow: column nowrap;
         padding: 0 5px;
-        &:nth-of-type(1) {
-          padding: 0 5px 0 0;
-          margin: 0 10px;
-        }
       }
     }
   }

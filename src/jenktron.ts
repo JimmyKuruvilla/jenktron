@@ -2,6 +2,7 @@ import settings from 'electron-settings';
 import { JenkinsHttp } from './jenkinsHttp/jenkinsHttp.class';
 import { ContextMenuService } from './services/contextMenu/contextMenu.service';
 import { PipelineService } from './services/pipeline/pipeline.service';
+import { jenktronDebug } from './shared';
 import { BrowserRenderer } from './views/browser/browserRenderer';
 import { ConfigCmp } from './views/browser/config/cmps/config/configCmp.class';
 import { Globals } from './views/browser/globals.class';
@@ -39,6 +40,7 @@ export async function browserInit(): Promise<void> {
       new ConfigCmp();
     }
 
+    window[jenktronDebug] = settings.getSync(jenktronDebug);
     new MainCmp();
   } else {
     new ConfigCmp();

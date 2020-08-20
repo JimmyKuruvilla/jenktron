@@ -3,9 +3,10 @@ import {
   UIStage,
   UIStageDetailsMap,
 } from '../../../../../services/pipeline/stageDetails.ui.interface';
+import { dasher } from '../../../../../shared';
 import { BaseCmp } from '../../../baseCmp.class';
 import { HTML } from '../../../html.class';
-import { $, $$, click, dasher } from '../../../shared';
+import { $, $$, click } from '../../../shared';
 import { MainCmp } from '../../main.view';
 const scrollButtonsHtml = `      
 <div id="scroll-buttons">
@@ -75,9 +76,6 @@ export class StageDetailsCmp extends BaseCmp {
         <div class="summary-block">
           <div class="summary-detail author">
             <div>Author</div><div>${dasher(h.git_author)}</div>
-          </div>
-          <div class="summary-detail commit">
-            <div>Commit Message</div><div>${dasher(h.commitMessage)}</div>
           </div>
           <div class="summary-detail comment">
             <div>Comment</div><div>${dasher(h.git_comment)}</div>

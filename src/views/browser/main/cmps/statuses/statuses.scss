@@ -23,7 +23,8 @@
   }
 }
 
-#statuses {
+#statuses,
+.single-status-cmp {
   display: flex;
   flex-flow: column nowrap;
   height: 100%;
@@ -42,6 +43,10 @@
       align-items: center;
       flex: 1;
       @extend %status-colorized;
+
+      &.suspicious {
+        color: $failing;
+      }
     }
   }
 }

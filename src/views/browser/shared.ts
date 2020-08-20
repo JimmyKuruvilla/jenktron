@@ -6,6 +6,7 @@ export const change = 'change';
 export const SUCCESS = 'SUCCESS';
 export const FAILED = 'FAILED';
 export const FAILING = 'FAILING';
+export const NA = 'NA';
 
 export function $(s: string): any {
   return document.querySelector.bind(document)(s);
@@ -49,10 +50,18 @@ export function createOptions(opts: HtmlOption[]): Node[] {
   });
 }
 
-export function createButtons(menu: string[]): Node[] {
-  return menu.map((menuItem) => {
+export function createButtons(
+  menu: string[],
+  opts = [[['disabled', false]]] // unused - changed my mind
+): Node[] {
+  return menu.map((menuItem, idx) => {
     const button = document.createElement('button');
     button.innerHTML = menuItem;
+    if (opts[idx]) {
+      opts[idx].forEach((prop: [string, any]) => {
+        button[prop[0]] = prop[1];
+      });
+    }
     return button;
   });
 }
@@ -65,10 +74,6 @@ export function createSelect(id: string, opts: HtmlOption[]): Node {
   return select;
 }
 
-export function dasher(str: string): string {
-  return str === null || str === undefined || str === '' ? '--' : str;
-}
-
 export type HtmlOption = [string, string];
 
 export function withEmpty(name: string, arr: HtmlOption[]): HtmlOption[] {
@@ -79,5 +84,3 @@ export function set(selector: string, newValue: any, emit = true): void {
   $(selector).value = newValue;
   if (emit) $(selector).dispatchEvent(new Event('change'));
 }
-
-export type VoidFn = () => void;

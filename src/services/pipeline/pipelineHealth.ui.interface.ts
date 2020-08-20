@@ -9,6 +9,5 @@ export interface UIPipeLineHealth {
   git_oneAffectedFile: string;
   status: string;
   mergedBranch: string;
-  commitMessage: string;
   failingFeatures: string;
 }
